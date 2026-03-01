@@ -397,3 +397,9 @@ $RECYCLE.BIN/
 *.lnk
 
 ### Project Specific ###
+.ace-tool/
+
+# maturin build artifacts
+*.dSYM/
+*.pyd
+*.dylib

@@ -1,0 +1,17 @@
+[package]
+name = "pytroska"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "_pytroska_core"
+crate-type = ["cdylib"]
+path = "rust/lib.rs"
+
+[profile.dev]
+opt-level = 1
+
+[dependencies]
+pyo3 = { version = "0.28.2", features = ["extension-module"] }
+thiserror = "2.0.18"
+webm-iterable = "0.6.4"

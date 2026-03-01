@@ -1,0 +1,3 @@
+"""Type stubs for pytroska._pytroska_core Rust extension module."""
+
+def core_version() -> str: ...
