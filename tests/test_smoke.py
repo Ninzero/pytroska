@@ -5,7 +5,7 @@ from pytroska import core_version
 
 
 def test_import() -> None:
-    assert hasattr(pytroska, "__version__")
+    assert hasattr(pytroska, '__version__')
 
 
 def test_core_version_returns_string() -> None:
@@ -16,9 +16,9 @@ def test_core_version_returns_string() -> None:
 
 def test_core_version_format() -> None:
     version = core_version()
-    parts = version.split(".")
+    parts = version.split('.')
     assert len(parts) == 3
 
 
 def test_package_version() -> None:
-    assert pytroska.__version__ == "0.1.0"
+    assert pytroska.__version__ == '0.1.0'
