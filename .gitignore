@@ -403,3 +403,6 @@ $RECYCLE.BIN/
 *.dSYM/
 *.pyd
 *.dylib
+
+# Test fixtures
+tests/fixtures

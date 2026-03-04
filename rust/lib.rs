@@ -1,6 +1,8 @@
 mod errors;
+mod header;
 
 use errors::{CorruptedError, ParseError, PytroskaError, UnsupportedError};
+use header::{EbmlHeader, parse_ebml_header};
 use pyo3::prelude::*;
 
 /// Returns the version string of the pytroska Rust core library.
@@ -20,5 +22,8 @@ fn _pytroska_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("UnsupportedError", py.get_type::<UnsupportedError>())?;
     // Phase 1
     m.add_function(wrap_pyfunction!(core_version, m)?)?;
+    // Phase 3
+    m.add_class::<EbmlHeader>()?;
+    m.add_function(wrap_pyfunction!(parse_ebml_header, m)?)?;
     Ok(())
 }
