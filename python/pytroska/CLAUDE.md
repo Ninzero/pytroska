@@ -46,7 +46,7 @@ Note: `EbmlHeader` and `parse_ebml_header` are implemented in Rust (Phase 3) and
 Planned additions per phase:
 
 | Phase | New exports |
-|-------|------------|
+| ----- | ----------- |
 | 5 | Rust-side `TrackInfo`, `VideoSettings`, `AudioSettings` via `_pytroska_core.pyi` |
 | 6 | `MKVFile`, `Track`, `VideoTrack`, `AudioTrack` from `file.py` and `tracks.py`; `TrackType` from `types.py` |
 | 9 | `Cue` from `cues.py` |
@@ -99,7 +99,7 @@ def parse_segment_info(path: str | PathLike[str]) -> SegmentInfo: ...
 
 ## Planned File Structure
 
-```
+```text
 python/pytroska/
 ├── __init__.py           # Public API, re-exports (Phase 4 complete)
 ├── py.typed              # PEP 561 marker (Phase 1 complete)
@@ -144,7 +144,7 @@ h.doc_type                  # 'matroska' or 'webm'
 
 ### Exception hierarchy
 
-```
+```text
 Exception
   PytroskaError
     ParseError        -- malformed EBML, invalid header, missing Info element
@@ -237,6 +237,6 @@ A: It is the raw `Duration` field from the Matroska Info element, in units of `t
 ## Changelog
 
 | Date | Description |
-|------|-------------|
+| ---- | ----------- |
 | 2026-03-08 | Updated by architecture scan. Phase 2 complete: `exceptions.py` added (re-exports all 4 exception classes). Phase 4 complete: `__init__.py` now exports `SegmentInfo`, `parse_segment_info`, all exceptions; `_pytroska_core.pyi` updated with `EbmlHeader`, `SegmentInfo`, `parse_ebml_header`, `parse_segment_info`. `EbmlHeader` noted as not yet in public `__init__.py`. isort config trailing-space bug documented. |
 | 2026-03-02 | Module CLAUDE.md created. Phase 1 state: `__init__.py`, `_pytroska_core.pyi`, `py.typed`. Phases 2–11 documented as planned. |

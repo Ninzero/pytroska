@@ -61,7 +61,7 @@ fn _pytroska_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
 Planned additions per phase:
 
 | Phase | File | Registered items |
-|-------|------|-----------------|
+| ----- | ---- | --------------- |
 | 5 | `tracks.rs` | `TrackInfo`, `VideoSettings`, `AudioSettings` pyclasses, `parse_tracks(path)` pyfunction |
 | 7 | `utils/lacing.rs`, `utils/timecode.rs` | Lacing and timecode utility functions |
 | 8 | `cluster.rs`, `demux.rs` | `BlockData` pyclass, `iter_frames(path, track_number)` pyfunction |
@@ -153,7 +153,7 @@ webm-iterable = "0.6.4"
 ## Planned Module Files
 
 | File | Responsibility |
-|------|---------------|
+| ---- | -------------- |
 | `tracks.rs` | `TrackInfo`, `VideoSettings`, `AudioSettings` pyclasses; `extract_tracks(tags)` |
 | `cluster.rs` | Cluster and SimpleBlock/Block element parsing |
 | `demux.rs` | Iterator over decoded `BlockData` structs |
@@ -169,7 +169,7 @@ webm-iterable = "0.6.4"
 
 ## Error Handling Pattern
 
-```
+```text
 PytroskaRustError (Rust internal)
   Io(std::io::Error)          -> Python OSError / FileNotFoundError
   Parse { position, message } -> Python ParseError
@@ -221,6 +221,6 @@ The `[profile.dev]` in `Cargo.toml` sets `opt-level = 1` to improve iteration sp
 ## Changelog
 
 | Date | Description |
-|------|-------------|
+| ---- | ----------- |
 | 2026-03-08 | Updated by architecture scan. Phases 2–4 complete: `errors.rs` (PytroskaRustError enum, 4 Python exception classes, map_tag_iterator_error), `header.rs` (EbmlHeader, parse_ebml_header), `reader.rs` (MkvReader::open with buffered Info iteration), `info.rs` (SegmentInfo, parse_info_children, extract_info). `tracing` dependency added. Phase 5 ordering constraint documented. |
 | 2026-03-02 | Module CLAUDE.md created. Phase 1 state: `lib.rs` with single `core_version()` function. Phases 2–10 documented as planned. |
