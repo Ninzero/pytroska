@@ -1,18 +1,18 @@
 {
-  "scanned_at": "2026-03-02T00:00:00Z",
+  "scanned_at": "2026-03-08T00:00:00Z",
   "project": "pytroska",
   "description": "High-performance MKV (Matroska) file processing library for Python, using Rust + Python hybrid architecture.",
   "root_claude_md": "CLAUDE.md",
   "truncated": false,
   "coverage": {
-    "total_source_files_estimated": 12,
-    "scanned_files": 12,
+    "total_source_files_estimated": 20,
+    "scanned_files": 20,
     "coverage_percent": 100,
     "ignored_dirs": [
       ".venv/ (Python virtual environment - gitignored)",
       "target/ (Rust build output - gitignored)",
       "__pycache__/ (Python bytecache - gitignored)",
-      "python/pytroska/lib_pytroska_core.dylib.dSYM/ (debug symbols - binary)"
+      "Cargo.lock (lockfile - binary-like, not scanned for content)"
     ]
   },
   "modules": [
@@ -21,16 +21,18 @@
       "path": "rust/",
       "claude_md": "rust/CLAUDE.md",
       "language": "Rust",
-      "role": "PyO3 extension module: EBML parsing, Matroska element extraction, file I/O, lacing, timecodes, seeking",
+      "role": "PyO3 extension module: EBML parsing, Matroska element extraction, file I/O",
       "entry_file": "rust/lib.rs",
       "config_files": ["Cargo.toml"],
-      "implementation_phase": 1,
-      "existing_files": ["rust/lib.rs"],
-      "planned_files": [
+      "implementation_phase": 4,
+      "existing_files": [
+        "rust/lib.rs",
         "rust/errors.rs",
         "rust/header.rs",
         "rust/reader.rs",
-        "rust/info.rs",
+        "rust/info.rs"
+      ],
+      "planned_files": [
         "rust/tracks.rs",
         "rust/cluster.rs",
         "rust/demux.rs",
@@ -42,14 +44,25 @@
         "rust/utils/lacing.rs",
         "rust/utils/timecode.rs"
       ],
+      "exported_pyclasses": ["EbmlHeader", "SegmentInfo"],
+      "exported_pyfunctions": ["core_version", "parse_ebml_header", "parse_segment_info"],
+      "exported_exceptions": ["PytroskaError", "ParseError", "CorruptedError", "UnsupportedError"],
+      "key_dependencies": {
+        "pyo3": "0.28.2",
+        "thiserror": "2.0.18",
+        "tracing": "0.1.44",
+        "webm-iterable": "0.6.4"
+      },
       "gaps": [
-        "error-types (Phase 2)",
-        "EBML-header-parsing (Phase 3)",
-        "segment-info (Phase 4)",
-        "track-parsing (Phase 5)",
+        "track-parsing (Phase 5) — includes critical reader.rs single-loop refactor",
+        "MKVFile-python-class (Phase 6)",
+        "lacing-timecode-utils (Phase 7)",
         "cluster-demux (Phase 8)",
         "cues-seeking (Phase 9)",
         "chapters-tags-attachments (Phase 10)"
+      ],
+      "known_issues": [
+        "Phase 5 ordering bug: reader.rs sequential extract_info -> extract_tracks pattern breaks if Tracks appears before Info in file (RFC 9559 does not guarantee order). Must refactor to single-pass loop in Phase 5."
       ]
     },
     {
@@ -57,19 +70,19 @@
       "path": "python/pytroska/",
       "claude_md": "python/pytroska/CLAUDE.md",
       "language": "Python",
-      "role": "User-facing API: MKVFile, Track, Chapter, Tag, Attachment, Cue, exception hierarchy",
+      "role": "User-facing API: exception hierarchy, SegmentInfo access, future MKVFile/Track/Chapter/Tag/Attachment/Cue wrappers",
       "entry_file": "python/pytroska/__init__.py",
       "config_files": ["pyproject.toml"],
       "type_stubs": "python/pytroska/_pytroska_core.pyi",
       "pep561_marker": "python/pytroska/py.typed",
-      "implementation_phase": 1,
+      "implementation_phase": 4,
       "existing_files": [
         "python/pytroska/__init__.py",
         "python/pytroska/_pytroska_core.pyi",
-        "python/pytroska/py.typed"
+        "python/pytroska/py.typed",
+        "python/pytroska/exceptions.py"
       ],
       "planned_files": [
-        "python/pytroska/exceptions.py",
         "python/pytroska/types.py",
         "python/pytroska/tracks.py",
         "python/pytroska/file.py",
@@ -79,13 +92,22 @@
         "python/pytroska/attachments.py",
         "python/pytroska/utils.py"
       ],
+      "public_api": [
+        "core_version()",
+        "parse_segment_info(path) -> SegmentInfo",
+        "SegmentInfo (class)",
+        "PytroskaError, ParseError, CorruptedError, UnsupportedError (exceptions)",
+        "__version__"
+      ],
       "gaps": [
-        "exception-hierarchy (Phase 2)",
-        "TrackType-enum (Phase 4)",
-        "MKVFile-and-Track-wrappers (Phase 6)",
-        "Cue-wrapper (Phase 9)",
-        "Chapter-Tag-Attachment-wrappers (Phase 10)",
-        "known-issue: isort known_first_party should be pytroska not tg_chat_bot"
+        "EbmlHeader not re-exported in __init__.py (only via _pytroska_core)",
+        "TrackType enum (Phase 5)",
+        "MKVFile high-level class (Phase 6)",
+        "Track / VideoTrack / AudioTrack wrappers (Phase 6)",
+        "Cue, Chapter, Tag, Attachment wrappers (Phase 9–10)"
+      ],
+      "known_issues": [
+        "pyproject.toml [tool.isort] known_first_party has trailing space: [\"pytroska \"] should be [\"pytroska\"]"
       ]
     },
     {
@@ -93,17 +115,18 @@
       "path": "tests/",
       "claude_md": "tests/CLAUDE.md",
       "language": "Python",
-      "role": "pytest test suite; exercises Rust extension and Python wrappers; uses official Matroska test files",
-      "entry_file": "tests/test_smoke.py",
+      "role": "pytest test suite; session fixtures auto-download 8 official Matroska test files with SHA-256 verification",
+      "entry_file": "tests/conftest.py",
       "config_files": ["pyproject.toml"],
-      "implementation_phase": 1,
-      "existing_files": ["tests/test_smoke.py"],
-      "planned_files": [
+      "implementation_phase": 4,
+      "existing_files": [
         "tests/conftest.py",
-        "tests/fixtures/",
+        "tests/test_smoke.py",
         "tests/test_errors.py",
         "tests/test_header.py",
-        "tests/test_info.py",
+        "tests/test_info.py"
+      ],
+      "planned_files": [
         "tests/test_tracks.py",
         "tests/test_file.py",
         "tests/test_demux.py",
@@ -114,39 +137,26 @@
         "tests/test_attachments.py",
         "tests/test_integration.py"
       ],
+      "fixture_download_url": "https://raw.githubusercontent.com/ietf-wg-cellar/matroska-test-files/master/test_files/testN.mkv",
+      "fixture_env_override": "PYTROSKA_FIXTURES_DIR",
       "gaps": [
-        "conftest-and-fixtures (Phase 3)",
-        "error-tests (Phase 2)",
-        "header-tests (Phase 3)",
-        "info-tests (Phase 4)",
-        "track-tests (Phase 5)",
-        "file-api-tests (Phase 6)",
-        "demux-tests (Phase 8)",
-        "cues-seek-tests (Phase 9)",
-        "chapter-tag-attachment-tests (Phase 10)",
-        "integration-tests (Phase 11)"
+        "test_tracks.py (Phase 5)",
+        "test_file.py (Phase 6)",
+        "test_demux.py (Phase 8)",
+        "test_cues.py + test_seek.py (Phase 9)",
+        "test_chapters.py + test_tags.py + test_attachments.py (Phase 10)",
+        "test_integration.py (Phase 11)"
       ]
     }
   ],
-  "implementation_plan": {
-    "path": ".plans/pytroska-implement-phases.md",
-    "phases_total": 11,
-    "current_phase_complete": 1,
-    "next_phase": 2
+  "next_phase": {
+    "number": 5,
+    "name": "Track parsing (Rust)",
+    "description": "Implement rust/tracks.rs with TrackInfo, VideoSettings, AudioSettings pyclasses. Refactor MkvReader::open() to single-pass loop (required to handle Tracks appearing before Info per RFC 9559). Add python/pytroska/types.py (TrackType IntEnum). Update _pytroska_core.pyi and __init__.py. Add tests/test_tracks.py.",
+    "critical_constraint": "MkvReader::open() must be refactored to a single-pass loop before adding track extraction — see reader.rs TODO(Phase 5) comment for the exact pattern."
   },
-  "architecture_report": {
-    "path": ".plans/pytroska-architecture-report.md"
-  },
-  "build": {
-    "tool": "maturin",
-    "dev_command": "uv run maturin develop --uv",
-    "release_command": "uv run maturin build --release",
-    "rust_entry": "rust/lib.rs",
-    "output_module": "pytroska._pytroska_core"
-  },
-  "quality_tools": {
-    "rust": ["cargo fmt", "cargo clippy -D warnings", "cargo test"],
-    "python": ["ruff", "ruff format", "isort", "pyright (strict)"],
-    "testing": "pytest"
+  "plans_dir": {
+    "architecture_report": ".plans/pytroska-architecture-report.md",
+    "implementation_phases": ".plans/pytroska-implement-phases.md"
   }
 }
