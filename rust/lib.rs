@@ -1,14 +1,27 @@
 mod errors;
 mod header;
+mod info;
+mod reader;
+
+use std::path::PathBuf;
 
 use errors::{CorruptedError, ParseError, PytroskaError, UnsupportedError};
 use header::{EbmlHeader, parse_ebml_header};
+use info::SegmentInfo;
 use pyo3::prelude::*;
+use reader::MkvReader;
 
 /// Returns the version string of the pytroska Rust core library.
 #[pyfunction]
 fn core_version() -> &'static str {
     env!("CARGO_PKG_VERSION")
+}
+
+/// 解析 MKV 文件的 Segment Info。
+#[pyfunction]
+fn parse_segment_info(path: PathBuf) -> PyResult<SegmentInfo> {
+    let reader = MkvReader::open(&path)?;
+    Ok(reader.info)
 }
 
 /// PyO3 module definition for pytroska's Rust core.
@@ -25,5 +38,8 @@ fn _pytroska_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Phase 3
     m.add_class::<EbmlHeader>()?;
     m.add_function(wrap_pyfunction!(parse_ebml_header, m)?)?;
+    // Phase 4
+    m.add_class::<SegmentInfo>()?;
+    m.add_function(wrap_pyfunction!(parse_segment_info, m)?)?;
     Ok(())
 }

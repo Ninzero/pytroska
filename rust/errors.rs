@@ -1,6 +1,7 @@
 use pyo3::PyErr;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
+use webm_iterable::errors::TagIteratorError;
 
 // Python 异常类（via create_exception!，第一参数为 __module__ 属性）
 create_exception!(pytroska._pytroska_core, PytroskaError, PyException);
@@ -46,5 +47,19 @@ impl From<PytroskaRustError> for PyErr {
             }
             PytroskaRustError::Corrupted(_) => CorruptedError::new_err(message),
         }
+    }
+}
+
+pub(crate) fn map_tag_iterator_error(e: TagIteratorError) -> PytroskaRustError {
+    let message = e.to_string();
+    match e {
+        TagIteratorError::ReadError { source } => PytroskaRustError::Io(source),
+        TagIteratorError::CorruptedFileData(_) | TagIteratorError::CorruptedTagData { .. } => {
+            PytroskaRustError::Corrupted(message)
+        }
+        TagIteratorError::UnexpectedEOF { tag_start, .. } => PytroskaRustError::Parse {
+            position: tag_start as u64,
+            message,
+        },
     }
 }
