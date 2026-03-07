@@ -22,7 +22,17 @@ impl MkvReader {
         let path_display = path.display().to_string();
 
         // tags_to_buffer: 缓冲 Info 为 Master::Full，extract_info 可一次性读取所有子元素
-        // Phase 5 扩展: 加入 MatroskaSpec::Tracks(Master::Start)
+        // TODO(Phase 5): 勿直接追加 Tracks(Master::Start) 后顺序调用 extract_tracks。
+        //   RFC 9559 不保证 Info 先于 Tracks；若文件中 Tracks 先出现，extract_info 的
+        //   `_ => {}` 会原子消费 Tracks(Full(...))，extract_tracks 随后将找不到 Tracks。
+        //   正确方案：将 open() 改为单次循环同时收集 Info 和 Tracks（顺序无关）：
+        //     loop { match tag {
+        //       Info(Full(ch))   => info_opt   = Some(parse_info_children(&ch)),
+        //       Tracks(Full(ch)) => tracks_opt = Some(parse_tracks_children(&ch)),
+        //       Cluster(_) | None => break,
+        //       _ => {}
+        //     }}
+        //   parse_info_children / parse_tracks_children 作为纯函数分别处理子元素列表。
         let mut iter = WebmIterator::new(&mut buf_reader, &[MatroskaSpec::Info(Master::Start)]);
 
         let header = parse_header_from_iter(&mut iter, &path_display)?;

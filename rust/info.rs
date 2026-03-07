@@ -44,7 +44,14 @@ fn parse_info_children(children: &[MatroskaSpec]) -> SegmentInfo {
             MatroskaSpec::WritingApp(s) => writing_app = s.clone(),
             MatroskaSpec::DateUTC(v) => date_utc_raw = Some(*v),
             MatroskaSpec::SegmentUID(v) => {
-                segment_uid = Some(v.iter().map(|b| format!("{b:02x}")).collect());
+                if v.len() == 16 {
+                    segment_uid = Some(v.iter().map(|b| format!("{b:02x}")).collect());
+                } else {
+                    tracing::warn!(
+                        len = v.len(),
+                        "SegmentUID has invalid length (expected 16 bytes), ignoring"
+                    );
+                }
             }
             _ => {}
         }
@@ -61,6 +68,19 @@ fn parse_info_children(children: &[MatroskaSpec]) -> SegmentInfo {
     }
 }
 
+/// 从已配置了 `Info` 缓冲的 WebmIterator 中提取 Segment Info 元素。
+///
+/// **前置条件**：调用方创建 iterator 时必须将 `Info` 加入 `tags_to_buffer`，
+/// 使 Info 以 `Master::Full(children)` 一次性返回。
+///
+/// # Phase 5 注意
+///
+/// TODO(Phase 5): 此函数在 Phase 4 由 `MkvReader::open()` 直接调用。
+/// Phase 5 **不能**保留 `extract_info → extract_tracks` 顺序调用模式——
+/// RFC 9559 不保证 Info 先于 Tracks，若 Tracks 先出现则会被此函数的
+/// `_ => {}` 分支原子消费，`extract_tracks` 随后将找不到 Tracks。
+/// Phase 5 应在 `open()` 内改用单次循环（见 `reader.rs` TODO）。
+/// 此函数可保留，用于不需要 Tracks 的独立调用场景（如 `parse_segment_info`）。
 pub(crate) fn extract_info<R: std::io::Read>(
     iter: &mut WebmIterator<R>,
     path_display: &str,
